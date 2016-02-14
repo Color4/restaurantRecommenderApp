@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 def get_results(params):
  
-  #Obtain these from Yelp's manage access page
+  #Obtain these from Yelp's manage access page (adding this to test heroku)
   session = rauth.OAuth1Session(
     consumer_key = os.environ['yelp_consumer_key']
     ,consumer_secret = os.environ['yelp_consumer_secret']

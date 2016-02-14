@@ -28,6 +28,7 @@ def get_results(params):
 
 def latlong(address):
   address = urllib2.quote(address)
+  google_geocode_api_key = os.environ['google_geocode_api_key']
   key = urllib2.quote(google_geocode_api_key)
   geocodeURL = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s" % (address, key)
   request = urllib2.urlopen(geocodeURL)

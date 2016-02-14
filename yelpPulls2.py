@@ -39,7 +39,7 @@ def latlong(address):
   return lat, lng
 
 def get_search_parameters(lat,lng,cuisine):
-  #See the Yelp API for more details
+  #See the Yelp API for more details woo
   params = {}
   params["term"] = cuisine
   params["ll"] = "{},{}".format(str(lat),str(lng))

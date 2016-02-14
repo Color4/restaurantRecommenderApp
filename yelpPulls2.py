@@ -6,6 +6,7 @@ import json
 import urllib2
 import math 
 from flask import Flask, render_template, request, redirect, url_for
+import os
 
 from config import *
 
@@ -15,10 +16,10 @@ def get_results(params):
  
   #Obtain these from Yelp's manage access page
   session = rauth.OAuth1Session(
-    consumer_key = yelp_consumer_key
-    ,consumer_secret = yelp_consumer_secret
-    ,access_token = yelp_token
-    ,access_token_secret = yelp_token_secret)
+    consumer_key = os.environ['yelp_consumer_key']
+    ,consumer_secret = os.environ['yelp_consumer_secret']
+    ,access_token = os.environ['yelp_token']
+    ,access_token_secret = os.environ['yelp_token_secret'])
      
   request = session.get("http://api.yelp.com/v2/search",params=params)
    
@@ -90,7 +91,7 @@ def bestFive():
       restaurantInfo.append([str(df.name[i]),\
                              str(df.url[i]),\
                              str(df.display_phone[i])])
-    KEY = googleJsapi
+    KEY = os.environ['googleJsapi']
     return render_template("map3.html", \
                            markerList = markerList, \
                            restaurantInfo = restaurantInfo,  KEY = KEY)

@@ -8,6 +8,10 @@ import math
 from flask import Flask, render_template, request, redirect, url_for
 import os
 import matplotlib.pyplot as plt
+import requests, re
+from bs4 import BeautifulSoup
+from datetime import datetime
+from collections import defaultdict
 
 
 
@@ -42,11 +46,11 @@ def get_search_parameters(lat,lng,cuisine, offset):
   params = {}
   params["term"] = cuisine
   params["ll"] = "{},{}".format(str(lat),str(lng))
-  params["radius_filter"] = "20000"
+  params["radius_filter"] = "10000"
   params["limit"] = "20"
   params["category_filter"] = "restaurants"
-  params["sort"] = "2"
-  params["offset"] = offset
+  #params["sort"] = "1"
+  params["offset"] = str(offset)
   return params
 
 def haversineDistMiles(lat1, lng1, lat2, lng2):
@@ -64,24 +68,48 @@ def make_plot(df, which_cuisine):
     #p = vplot(p4)
     show(p4)
 
+
+# Scrap yelp.com for review info
+# Used recursion
+def getReviews(df, url, offset):
+    url2 = url + "?start=%d" % (offset)
+    request = urllib2.urlopen(url2)
+    soup = BeautifulSoup(request, "lxml")
+    letters = soup.find_all("div", class_="review-content")
+    reviews = defaultdict(list)
+    for element in letters:
+        reviews['review'].append(element.p.get_text())
+        reviews['rating'].append(float((re.findall('\d+\.\d+', element.i["title"] ))[0]))
+        reviews['date'].append(element.span.find("meta")['content'])
+    reviewsDf = pd.DataFrame.from_dict(reviews)
+    df = pd.concat([df, reviewsDf])
+    if len(reviewsDf)<20:
+        return df
+    else:
+        time.sleep(2.0)
+        return getReviews(df, url, offset+20)
+
   #if request.method == 'GET':
   #  return render_template('index.html')
   #else:
-address = "1015 E. Johnson St, Madison, WI, 53703"#request.form['address']
-cuisine = "Pizza" #request.form['cuisine']
+address = "1177 W El Camino Real, Sunnyvale, CA 94087"#request.form['address']
+cuisine = "Indian" #request.form['cuisine']
 lat,lng = latlong(address)
 df = pd.DataFrame()
-for offset in range(0,500,20):
+for offset in range(0,1000,20):
   params = get_search_parameters(lat,lng, cuisine, offset)
   data = get_results(params)
     #Be a good internet citizen and rate-limit yourself
   time.sleep(1.0)
   data = data[data.keys()[2]]
+  print len(data)
   df = df.append(pd.DataFrame.from_dict(data), ignore_index=True)
   if len(pd.DataFrame.from_dict(data))<18:
     break;
 df.plot(x='review_count', y = 'rating', kind = 'hexbin', xscale = 'log', cmap = 'YlGnBu', gridsize = 12,  mincnt = 1)                   
 plt.show()
 
+# For every business listed, score it based on user prefs
+# Bayesian Averaging!
 
 
